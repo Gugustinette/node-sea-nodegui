@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> This is experimental and not working yet
+
 # node-sea-nodegui
 
 A modern [NodeGui](https://docs.nodegui.org/) application starter based on [Node.js Single Executable Applications](https://nodejs.org/api/single-executable-applications.html#single-executable-applications).
