@@ -13,6 +13,8 @@ const MAX_REDIRECTS = 5;
 const SEA_RELAUNCH_ASSET_KEY = "node-sea-nodegui:relaunch-main";
 const SEA_ASSET_PREFIX = "node-sea-nodegui:asset:";
 const EXTRACTED_ASSETS_ENV = "NODEGUI_EXTRACTED_ASSETS";
+const MINIQT_ASSET_ROOT = "miniqt";
+const MINIQT_ENV = "NODEGUI_MINIQT_PATH";
 
 function isRunningWithQode(): boolean {
   const execName = path.basename(process.execPath).toLowerCase();
@@ -182,6 +184,54 @@ function buildExtractedAssetMap(requiredAssetPaths: readonly string[]): Record<s
   return result;
 }
 
+function extractSeaDirectory(directoryRelativePath: string): string | undefined {
+  const normalizedDirPath = normalizeAssetRelativePath(directoryRelativePath).replace(/\/+$/, "");
+  if (!normalizedDirPath) {
+    return undefined;
+  }
+
+  const sea = getSeaModule() as {
+    isSea?: () => boolean;
+    getAsset?: (key: string, encoding?: BufferEncoding) => string | ArrayBuffer;
+    getAssetKeys?: () => string[];
+  };
+  if (!sea?.isSea?.() || typeof sea.getAsset !== "function" || typeof sea.getAssetKeys !== "function") {
+    return undefined;
+  }
+
+  const keyPrefix = `${SEA_ASSET_PREFIX}${normalizedDirPath}/`;
+  const keys = sea.getAssetKeys().filter((assetKey) => assetKey.startsWith(keyPrefix));
+  if (keys.length === 0) {
+    return undefined;
+  }
+
+  const extractedRoot = path.join(qodeInstallDir(), "assets", normalizedDirPath);
+  fs.mkdirSync(extractedRoot, { recursive: true });
+
+  for (const assetKey of keys) {
+    try {
+      const assetData = sea.getAsset(assetKey);
+      if (!assetData) {
+        continue;
+      }
+
+      const relativePath = assetKey.slice(`${SEA_ASSET_PREFIX}`.length);
+      const outputPath = path.join(qodeInstallDir(), "assets", ...relativePath.split("/"));
+      fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+
+      if (!fs.existsSync(outputPath)) {
+        const payload =
+          typeof assetData === "string" ? Buffer.from(assetData, "utf8") : Buffer.from(assetData as ArrayBuffer);
+        fs.writeFileSync(outputPath, payload);
+      }
+    } catch {
+      // Ignore a failed asset extraction and continue with other files.
+    }
+  }
+
+  return extractedRoot;
+}
+
 export function resolveBundledAssetPath(assetRelativePath: string): string {
   const normalizedRelativePath = normalizeAssetRelativePath(assetRelativePath);
 
@@ -314,9 +364,13 @@ export async function ensureQodeAndRelaunch(requiredAssetPaths: readonly string[
 
   const qodePath = await ensureQodeBinary();
   const extractedAssets = buildExtractedAssetMap(requiredAssetPaths);
+  const extractedMiniqtRoot = extractSeaDirectory(MINIQT_ASSET_ROOT);
   const env = { ...process.env, NODEGUI_QODE_BOOTSTRAPPED: "1" };
   if (Object.keys(extractedAssets).length > 0) {
     env[EXTRACTED_ASSETS_ENV] = JSON.stringify(extractedAssets);
+  }
+  if (extractedMiniqtRoot && fs.existsSync(extractedMiniqtRoot)) {
+    env[MINIQT_ENV] = extractedMiniqtRoot;
   }
 
   const relaunchEntry = resolveRelaunchEntryFile();

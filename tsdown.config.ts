@@ -7,9 +7,9 @@ import { inlineNativeAddonsPlugin } from "./config/inline-native-addons-plugin.t
 const SEA_RELAUNCH_KEY = "node-sea-nodegui:relaunch-main";
 const SEA_ASSET_PREFIX = "node-sea-nodegui:asset:";
 
-function collectAssetEntries(assetsDir: string): Record<string, string> {
+function collectAssetEntries(sourceDir: string, keyRoot: string): Record<string, string> {
   const entries: Record<string, string> = {};
-  if (!fs.existsSync(assetsDir)) {
+  if (!fs.existsSync(sourceDir)) {
     return entries;
   }
 
@@ -26,22 +26,25 @@ function collectAssetEntries(assetsDir: string): Record<string, string> {
         continue;
       }
 
-      const relativePath = path.relative(configDir, absolutePath).split(path.sep).join("/");
+      const localRelativePath = path.relative(sourceDir, absolutePath).split(path.sep).join("/");
+      const relativePath = keyRoot ? `${keyRoot}/${localRelativePath}` : localRelativePath;
       const key = `${SEA_ASSET_PREFIX}${relativePath}`;
       entries[key] = absolutePath;
     }
   };
 
-  visit(assetsDir);
+  visit(sourceDir);
 
   return entries;
 }
 
 const configDir = path.dirname(fileURLToPath(import.meta.url));
 const assetsDir = path.join(configDir, "assets");
+const miniqtDir = path.join(configDir, "node_modules", "@nodegui", "nodegui", "miniqt");
 const seaAssets = {
   [SEA_RELAUNCH_KEY]: path.join(configDir, "dist", "main.cjs"),
-  ...collectAssetEntries(assetsDir),
+  ...collectAssetEntries(assetsDir, "assets"),
+  ...collectAssetEntries(miniqtDir, "miniqt"),
 };
 
 export default defineConfig({
