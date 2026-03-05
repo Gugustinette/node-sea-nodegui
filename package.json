@@ -1,0 +1,16 @@
+{
+  "name": "node-sea-nodegui",
+  "type": "module",
+  "scripts": {
+    "build": "tsdown",
+    "start": "qode dist/main.cjs"
+  },
+  "devDependencies": {
+    "@types/node": "^25.3.3",
+    "tsdown": "^0.21.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@nodegui/nodegui": "^0.74.0"
+  }
+}

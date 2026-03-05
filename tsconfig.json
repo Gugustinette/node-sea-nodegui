@@ -1,0 +1,24 @@
+{
+    "compilerOptions": {
+        "allowSyntheticDefaultImports": true,
+        "types": [
+            "node"
+        ],
+        "target": "esnext",
+        "module": "ES2020",
+        "declaration": true,
+        "noImplicitAny": false,
+        "noImplicitThis": true,
+        "noImplicitReturns": true,
+        "removeComments": false,
+        "sourceMap": true,
+        "noLib": false,
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "outDir": "build",
+        "rootDir": "src"
+    },
+    "include": [
+        "./src/**/*.ts"
+    ]
+}
