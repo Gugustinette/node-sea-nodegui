@@ -1,5 +1,4 @@
-import * as path from "node:path";
-import { ensureQodeAndRelaunch } from "./setup";
+import { ensureQodeAndRelaunch, resolveBundledAssetPath } from "./setup";
 
 type NodeGuiModule = typeof import("@nodegui/nodegui");
 
@@ -19,7 +18,8 @@ function startUi(nodegui: NodeGuiModule): void {
   label.setText("Hello");
 
   const button = new QPushButton();
-  button.setIcon(new QIcon(path.join(__dirname, "../assets/logox200.png")));
+  const logoPath = resolveBundledAssetPath("assets/logox200.png");
+  button.setIcon(new QIcon(logoPath));
 
   const label2 = new QLabel();
   label2.setText("World");
@@ -50,7 +50,7 @@ function startUi(nodegui: NodeGuiModule): void {
 }
 
 async function main(): Promise<void> {
-  await ensureQodeAndRelaunch();
+  await ensureQodeAndRelaunch(["assets/logox200.png"]);
   const nodegui = await import("@nodegui/nodegui");
   startUi(nodegui);
 }
