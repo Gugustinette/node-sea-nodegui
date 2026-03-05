@@ -1,4 +1,5 @@
 import { defineConfig } from "tsdown";
+import { inlineNativeAddonsPlugin } from "./config/inline-native-addons-plugin.ts";
 
 export default defineConfig({
   entry: "src/main.ts",
@@ -6,8 +7,9 @@ export default defineConfig({
   platform: "node",
   format: "cjs",
   deps: {
-    // alwaysBundle: ["@nodegui/nodegui"]
+    alwaysBundle: ["@nodegui/nodegui"]
   },
-  // exe: true,
+  plugins: [inlineNativeAddonsPlugin()],
+  exe: true,
   clean: true,
 });

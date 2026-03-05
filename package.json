@@ -3,7 +3,7 @@
   "type": "module",
   "scripts": {
     "build": "tsdown",
-    "start": "qode dist/main.cjs"
+    "start": "./dist/main"
   },
   "devDependencies": {
     "@types/node": "^25.3.3",
